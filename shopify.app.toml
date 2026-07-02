@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "a8aab0953d42f84ce53452d3b5beb924"
-application_url = "https://extended-inventory.onrender.com"
+application_url = "https://external_inventory.onrender.com"
 embedded = true
 name = "External Inventory"
 handle = "nvr-external-inventory"
@@ -52,5 +52,4 @@ api_version = "2026-10"
 redirect_urls = [ "https://extended-inventory.onrender.com/api/auth" ]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
