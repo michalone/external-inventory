@@ -37,6 +37,10 @@
             return `Objednejte dnes ${orderDate} a zboží vám doručíme dne ${deliveryDate}.`;
         }
 
+        if (locale && locale.toLowerCase().startsWith("sk")) {
+            return `Objednajte si ešte dnes ${orderDate} a tovar vám doručíme dňa ${deliveryDate}.`;
+        }
+
         return `Order today ${orderDate} and we will deliver on ${deliveryDate}.`;
     }
 
