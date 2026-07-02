@@ -1,0 +1,23 @@
+{% if cart.item_count > 0 %}
+  <div
+    class="external-inventory-lead-time"
+    data-external-inventory-lead-time
+    data-endpoint="/apps/external-inventory"
+    data-locale="{{ localization.language.iso_code | default: shop.locale }}"
+  >
+    {% for item in cart.items %}
+      <p data-product-id="{{ item.product_id }}" data-external-inventory-message hidden></p>
+    {% endfor %}
+  </div>
+
+  <script src="{{ 'external-inventory-lead-time.js' | asset_url }}" defer="defer"></script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "External Lead Time (Cart)",
+  "target": "section",
+  "templates": ["cart"],
+  "settings": []
+}
+{% endschema %}

@@ -14,7 +14,7 @@
     "field.supplier": "Dodavatel",
     "field.product": "Produkt",
     "field.availability": "Dostupnost",
-    "field.expectedDate": "Očekávané datum",
+    "field.leadTime": "Dodací lhůta (dny)",
     "field.actions": "Akce",
     "filter.allSuppliers": "Všichni dodavatelé",
     "filter.productSearch": "Hledat produkt",

@@ -33,9 +33,14 @@ access.admin = "merchant_read_write"
   type = "number_integer"
   required = true
 
-  [metaobjects.app.external_inventory.fields.expected_date]
-  name = "Expected date"
-  type = "date"
+  [metaobjects.app.external_inventory.fields.lead_time]
+  name = "Lead time (days)"
+  type = "number_integer"
+
+[app_proxy]
+url = "https://external-inventory.onrender.com/apps/external-inventory"
+subpath = "external-inventory"
+prefix = "apps"
 
 [webhooks]
 api_version = "2026-10"

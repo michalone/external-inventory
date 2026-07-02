@@ -58,7 +58,7 @@ interface InventoryRow {
   productId: string;
   productImage: string;
   availability: string;
-  expectedDate: string;
+  leadTime: string;
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -102,7 +102,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       productId: productField?.reference?.id ?? "",
       productImage: productField?.reference?.featuredImage?.url ?? "",
       availability: byKey.get("availability")?.value ?? "",
-      expectedDate: byKey.get("expected_date")?.value ?? "",
+      leadTime: byKey.get("lead_time")?.value ?? "",
     };
   });
 
@@ -240,7 +240,7 @@ export default function Index() {
                   <s-table-header>{t("field.supplier")}</s-table-header>
                   <s-table-header>{t("field.product")}</s-table-header>
                   <s-table-header>{t("field.availability")}</s-table-header>
-                  <s-table-header>{t("field.expectedDate")}</s-table-header>
+                  <s-table-header>{t("field.leadTime")}</s-table-header>
                   <s-table-header>{t("field.actions")}</s-table-header>
                 </s-table-header-row>
                 <s-table-body>
@@ -275,7 +275,7 @@ export default function Index() {
                         </s-stack>
                       </s-table-cell>
                       <s-table-cell>{row.availability}</s-table-cell>
-                      <s-table-cell>{row.expectedDate}</s-table-cell>
+                      <s-table-cell>{row.leadTime}</s-table-cell>
                       <s-table-cell>
                         <s-stack direction="inline" gap="small-300">
                           <s-button

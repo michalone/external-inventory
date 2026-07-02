@@ -14,7 +14,7 @@
     "field.supplier": "Supplier",
     "field.product": "Product",
     "field.availability": "Availability",
-    "field.expectedDate": "Expected date",
+    "field.leadTime": "Lead time (days)",
     "field.actions": "Actions",
     "filter.allSuppliers": "All suppliers",
     "filter.productSearch": "Search product",

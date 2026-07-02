@@ -57,7 +57,7 @@ interface MetaobjectMutationResponse {
     };
 }
 
-const FIELD_KEYS = ["supplier", "product", "availability", "expected_date"] as const;
+const FIELD_KEYS = ["supplier", "product", "availability", "lead_time"] as const;
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     const { admin } = await authenticate.admin(request);
@@ -172,7 +172,7 @@ export default function EditInventoryRecord() {
         supplier: "",
         product: "",
         availability: "",
-        expected_date: "",
+        lead_time: "",
     });
     const [product, setProduct] = useState<SelectedProduct | null>(null);
     const isSubmitting = ["loading", "submitting"].includes(fetcher.state);
@@ -182,7 +182,7 @@ export default function EditInventoryRecord() {
             supplier: record.fields.supplier ?? "",
             product: record.fields.product ?? "",
             availability: record.fields.availability ?? "",
-            expected_date: record.fields.expected_date ?? "",
+            lead_time: record.fields.lead_time ?? "",
         });
         setProduct(loadedProduct);
         hasNavigated.current = false;
@@ -252,27 +252,14 @@ export default function EditInventoryRecord() {
                         }
                     />
 
-                    <div>
-                        <label
-                            htmlFor="expected_date"
-                            style={{ display: "block", marginBottom: "4px", fontWeight: 500 }}
-                        >
-                            {t("field.expectedDate")}
-                        </label>
-                        <input
-                            id="expected_date"
-                            type="date"
-                            name="expected_date"
-                            value={form.expected_date}
-                            onChange={(e) => setField("expected_date", e.target.value)}
-                            style={{
-                                padding: "8px",
-                                borderRadius: "4px",
-                                border: "1px solid #ccc",
-                                width: "100%",
-                            }}
-                        />
-                    </div>
+                    <s-number-field
+                        label={t("field.leadTime")}
+                        name="lead_time"
+                        value={form.lead_time}
+                        onChange={(e) =>
+                            setField("lead_time", (e.target as HTMLInputElement).value)
+                        }
+                    />
 
                     <s-stack direction="inline" gap="base">
                         <s-button
