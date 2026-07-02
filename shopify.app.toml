@@ -1,0 +1,56 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "a8aab0953d42f84ce53452d3b5beb924"
+application_url = "https://example.com"
+embedded = true
+name = "External Inventory"
+handle = "nvr-external-inventory"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products,write_metaobjects,write_metaobject_definitions,read_companies"
+
+# =====================================================================
+# Metaobject (app-owned) for tracking external stock held at a supplier
+# =====================================================================
+[metaobjects.app.external_inventory]
+name = "External inventory"
+description = "External stock availability of a product held at a supplier"
+access.admin = "merchant_read_write"
+
+  [metaobjects.app.external_inventory.fields.supplier]
+  name = "Supplier"
+  type = "company_reference"
+  required = true
+
+  [metaobjects.app.external_inventory.fields.product]
+  name = "Product"
+  type = "product_reference"
+  required = true
+
+  [metaobjects.app.external_inventory.fields.availability]
+  name = "Availability"
+  type = "number_integer"
+  required = true
+
+  [metaobjects.app.external_inventory.fields.expected_date]
+  name = "Expected date"
+  type = "date"
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = [ "app/uninstalled" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = [ "app/scopes_update" ]
+
+[auth]
+redirect_urls = [ "https://example.com/api/auth" ]
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
