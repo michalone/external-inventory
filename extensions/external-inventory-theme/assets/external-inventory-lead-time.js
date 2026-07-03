@@ -1,7 +1,6 @@
 (() => {
     const ATTR_ROOT = "[data-external-inventory-lead-time]";
     const ATTR_MSG = "[data-external-inventory-message]";
-    const ROOT_SELECTOR = `${ATTR_ROOT}:not([data-external-inventory-bound])`;
 
     const cache = new Map();
     let mutationObserver = null;
@@ -12,13 +11,31 @@
         return Number.isFinite(parsed) ? parsed : null;
     }
 
-    function asProductIds(container) {
+    function asProductIds(nodes) {
         const ids = new Set();
-        for (const node of container.querySelectorAll(ATTR_MSG)) {
+        for (const node of nodes) {
             const id = toInt(node.getAttribute("data-product-id"));
             if (id !== null) ids.add(id);
         }
         return Array.from(ids);
+    }
+
+    function resolveConfig(node, fallbackRoot) {
+        const nearestRoot = node.closest(ATTR_ROOT);
+        const root = nearestRoot || fallbackRoot;
+
+        const endpoint =
+            node.getAttribute("data-endpoint") ||
+            (root && root.getAttribute("data-endpoint")) ||
+            "/apps/external-inventory";
+
+        const locale =
+            node.getAttribute("data-locale") ||
+            (root && root.getAttribute("data-locale")) ||
+            document.documentElement.lang ||
+            "cs-CZ";
+
+        return { endpoint, locale };
     }
 
     function formatDate(date, locale) {
@@ -70,13 +87,11 @@
         return leadTimes;
     }
 
-    async function hydrateContainer(container) {
-        const endpoint = container.getAttribute("data-endpoint") || "/apps/external-inventory";
-        const locale = container.getAttribute("data-locale") || "cs-CZ";
-        const productIds = asProductIds(container);
-        const leadTimes = await fetchLeadTimes(endpoint, productIds);
+    async function hydrateNodes(nodes, config) {
+        const productIds = asProductIds(nodes);
+        const leadTimes = await fetchLeadTimes(config.endpoint, productIds);
 
-        for (const node of container.querySelectorAll(ATTR_MSG)) {
+        for (const node of nodes) {
             const productId = toInt(node.getAttribute("data-product-id"));
             if (productId === null) continue;
 
@@ -90,31 +105,48 @@
             const orderDate = new Date();
             const deliveryDate = addDays(orderDate, leadTime);
             node.textContent = buildMessage(
-                formatDate(orderDate, locale),
-                formatDate(deliveryDate, locale),
-                locale,
+                formatDate(orderDate, config.locale),
+                formatDate(deliveryDate, config.locale),
+                config.locale,
             );
             node.hidden = false;
         }
     }
 
-    function bindAndHydrateRoots() {
-        const roots = document.querySelectorAll(ROOT_SELECTOR);
-        for (const root of roots) {
-            root.setAttribute("data-external-inventory-bound", "true");
-            hydrateContainer(root).catch(() => {
-                // Keep storefront stable if proxy call fails.
-            });
-        }
-    }
+    async function hydrateAll() {
+        const allNodes = Array.from(document.querySelectorAll(ATTR_MSG));
+        if (allNodes.length === 0) return;
 
-    function refreshAllRoots() {
-        const roots = document.querySelectorAll(ATTR_ROOT);
-        for (const root of roots) {
-            hydrateContainer(root).catch(() => {
-                // Keep storefront stable if proxy call fails.
-            });
+        const fallbackRoot = document.querySelector(ATTR_ROOT);
+        const groups = new Map();
+
+        for (const node of allNodes) {
+            const productId = toInt(node.getAttribute("data-product-id"));
+            if (productId === null) {
+                node.hidden = true;
+                node.textContent = "";
+                continue;
+            }
+
+            const config = resolveConfig(node, fallbackRoot);
+            const key = `${config.endpoint}|${config.locale}`;
+            if (!groups.has(key)) {
+                groups.set(key, { config, nodes: [] });
+            }
+
+            groups.get(key).nodes.push(node);
         }
+
+        const tasks = [];
+        for (const group of groups.values()) {
+            tasks.push(
+                hydrateNodes(group.nodes, group.config).catch(() => {
+                    // Keep storefront stable if proxy call fails.
+                }),
+            );
+        }
+
+        await Promise.all(tasks);
     }
 
     function queueRefresh() {
@@ -123,8 +155,9 @@
 
         requestAnimationFrame(() => {
             refreshQueued = false;
-            bindAndHydrateRoots();
-            refreshAllRoots();
+            hydrateAll().catch(() => {
+                // Keep storefront stable if proxy call fails.
+            });
         });
     }
 
@@ -144,7 +177,9 @@
     }
 
     function init() {
-        bindAndHydrateRoots();
+        hydrateAll().catch(() => {
+            // Keep storefront stable if proxy call fails.
+        });
         observeDynamicCartUpdates();
     }
 
