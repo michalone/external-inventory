@@ -1,4 +1,8 @@
 (() => {
+    if (window.ExternalInventoryLeadTime?.initialized) {
+        return;
+    }
+
     const ATTR_ROOT = "[data-external-inventory-lead-time]";
     const ATTR_MSG = "[data-external-inventory-message]";
 
@@ -184,6 +188,7 @@
     }
 
     window.ExternalInventoryLeadTime = {
+        initialized: true,
         refresh: queueRefresh,
     };
 
