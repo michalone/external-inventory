@@ -1,8 +1,11 @@
 (() => {
     const ATTR_ROOT = "[data-external-inventory-lead-time]";
     const ATTR_MSG = "[data-external-inventory-message]";
+    const ROOT_SELECTOR = `${ATTR_ROOT}:not([data-external-inventory-bound])`;
 
     const cache = new Map();
+    let mutationObserver = null;
+    let refreshQueued = false;
 
     function toInt(value) {
         const parsed = Number.parseInt(String(value), 10);
@@ -77,6 +80,10 @@
             const productId = toInt(node.getAttribute("data-product-id"));
             if (productId === null) continue;
 
+            // Reset stale state when cart markup is re-used by theme scripts.
+            node.hidden = true;
+            node.textContent = "";
+
             const leadTime = toInt(leadTimes[String(productId)]);
             if (leadTime === null || leadTime < 0) continue;
 
@@ -91,7 +98,17 @@
         }
     }
 
-    function init() {
+    function bindAndHydrateRoots() {
+        const roots = document.querySelectorAll(ROOT_SELECTOR);
+        for (const root of roots) {
+            root.setAttribute("data-external-inventory-bound", "true");
+            hydrateContainer(root).catch(() => {
+                // Keep storefront stable if proxy call fails.
+            });
+        }
+    }
+
+    function refreshAllRoots() {
         const roots = document.querySelectorAll(ATTR_ROOT);
         for (const root of roots) {
             hydrateContainer(root).catch(() => {
@@ -99,6 +116,41 @@
             });
         }
     }
+
+    function queueRefresh() {
+        if (refreshQueued) return;
+        refreshQueued = true;
+
+        requestAnimationFrame(() => {
+            refreshQueued = false;
+            bindAndHydrateRoots();
+            refreshAllRoots();
+        });
+    }
+
+    function observeDynamicCartUpdates() {
+        if (mutationObserver || !document.body) return;
+
+        mutationObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type !== "childList") continue;
+                if (mutation.addedNodes.length === 0 && mutation.removedNodes.length === 0) continue;
+                queueRefresh();
+                return;
+            }
+        });
+
+        mutationObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
+    function init() {
+        bindAndHydrateRoots();
+        observeDynamicCartUpdates();
+    }
+
+    window.ExternalInventoryLeadTime = {
+        refresh: queueRefresh,
+    };
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init);
